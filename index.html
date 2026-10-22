@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>StokGlove – Inventory &amp; Surat Jalan</title>
+<style>
+:root{
+  color-scheme:dark;
+  --frame:#050505;--bg:#0b0b0b;--card:#121212;--card2:#181818;--line:#1f1f1f;--line2:#2b2b2b;
+  --ink:#f3f3f3;--muted:#8d8d8d;--faint:#5e5e5e;--hover:#1a1a1a;
+  --up:#3ecf8e;--down:#ef5350;--amber:#f5b84a;
+  --ok:#4ade80;--ok-bg:rgba(74,222,128,.12);--warn:#f5b84a;--warn-bg:rgba(245,184,74,.13);--bad:#f87171;--bad-bg:rgba(248,113,113,.13);--idle:#bdbdbd;--idle-bg:rgba(255,255,255,.07);
+  --brand:#f3f3f3;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--frame);color:var(--ink);font:14.5px/1.5 Geist,Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-feature-settings:"tnum" 1}
+h1,h2,h3{margin:0;line-height:1.25}
+h2{font-size:15px;font-weight:500;color:var(--muted)}h3{font-size:14px;font-weight:600;margin:18px 0 8px}
+button,input,select,textarea{font:inherit;color:inherit}
+.shell{display:grid;grid-template-columns:262px minmax(0,1fr);min-height:100vh}
+
+/* sidebar */
+aside{padding:18px 12px 14px 20px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{display:flex;gap:10px;align-items:center;font-weight:600;font-size:16px;padding:2px 4px 14px}
+.logo small{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+.mark{width:34px;height:34px;border-radius:10px;background:#f3f3f3;display:grid;place-items:center;color:#0b0b0b;flex:none}
+.mark svg{width:18px;height:18px}
+.search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 10px 0 14px;height:44px;color:var(--muted);margin-bottom:6px}
+.search svg{width:17px;height:17px;flex:none}
+.search input{background:transparent;border:0;outline:0;min-height:0;padding:0;height:100%;color:var(--ink);flex:1;min-width:0}
+.search:focus-within{border-color:var(--line2);background:var(--card2)}
+.search kbd{font:600 11px/1 inherit;font-family:inherit;color:var(--muted);background:var(--idle-bg);border-radius:6px;padding:4px 6px}
+.grp{font-size:12.5px;color:var(--faint);padding:0 12px;margin:16px 0 6px}
+nav{display:flex;flex-direction:column;gap:2px}
+nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;color:#b4b4b4;font-weight:500}
+nav button svg{width:18px;height:18px;flex:none}
+nav button .nl{flex:1}
+nav button:hover{background:var(--hover);color:#fff}
+nav button[aria-current=page]{background:#1c1c1c;color:#fff}
+nav button:focus-visible,.btn:focus-visible,.icon:focus-visible,.user:focus-within,.note button:focus-visible{outline:2px solid #e8e8e8;outline-offset:2px}
+.pill{background:#f3f3f3;color:#0b0b0b;font-size:11px;font-weight:700;border-radius:999px;padding:0 7px;line-height:18px}
+.side-bottom{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 14px 10px}
+.note-t{font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.note button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 4px;color:#d4d4d4;font-size:13.5px;border-radius:8px;width:100%}
+.note button::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--amber);flex:none}
+.note button:hover{color:#fff;background:var(--hover)}
+.note p{margin:0;padding:4px 4px 6px;color:var(--muted);font-size:13px}
+.reset{all:unset;cursor:pointer;color:var(--faint);font-size:12px;padding:0 6px}
+.reset:hover{color:var(--muted)}
+.user{position:relative;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px}
+.user .av{width:34px;height:34px;border-radius:10px;background:#222;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.user .u-t{flex:1;min-width:0;line-height:1.25}
+.user .u-t b{display:block;font-size:14px;font-weight:600}
+.user .u-t small{color:var(--muted);font-size:12px}
+.user svg{width:16px;height:16px;color:var(--muted);flex:none}
+.user select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;min-height:0}
+.user select option{color:#111}
+
+/* main panel */
+main{background:var(--bg);border:1px solid var(--line);border-radius:26px;padding:28px 30px 60px;margin:12px 12px 12px 0;min-width:0;min-height:calc(100vh - 24px)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.top h1{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.top p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.top .btns{display:flex;gap:8px;flex-wrap:wrap}
+.banner{background:var(--card);color:var(--muted);border:1px solid var(--line);border-radius:14px;padding:10px 16px;margin-bottom:18px;font-size:13px}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 24px 24px}
+.stat-h{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px}
+.stat-v{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stat-v b{font-size:36px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.stat-v .u{color:var(--muted);font-size:14px;font-weight:500;margin-left:-4px}
+.stat-v .dd{font-size:13.5px;font-weight:600}
+.stat-v .vs{font-size:13.5px;color:var(--muted)}
+.delta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
+.delta::before{content:"";width:12px;height:12px;border-radius:50%;background:currentColor;flex:none}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--muted)}
+
+/* panels */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 24px;margin-bottom:16px}
+.panel>h2{margin-bottom:14px}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.big{font-size:34px;font-weight:600;letter-spacing:-.03em;line-height:1.15}
+.big small{font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:2px}
+.muted{color:var(--muted);font-size:14px}
+.chart-h{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.chart-r{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.seg-btns{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg-btns button{all:unset;cursor:pointer;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg-btns button[aria-pressed=true]{background:#f3f3f3;color:#0b0b0b}
+.seg-btns button:focus-visible{outline:2px solid #e8e8e8;outline-offset:2px}
+#chart{width:100%;height:auto;display:block;touch-action:pan-y;cursor:crosshair}
+#chart .ax{fill:#8d8d8d;font-size:13px}
+#chart .gl{stroke:#262626;stroke-dasharray:3 5}
+#chart .cl{stroke:#e8e8e8;stroke-width:1.2}
+#chart .cd{fill:#0b0b0b;stroke:#fff;stroke-width:3}
+#chart #c-tip-r{fill:#171717;stroke:#2c2c2c}
+#chart .tp1{fill:#d6d6d6;font-size:13px;font-weight:500}
+#chart .tp2{fill:#f3f3f3;font-size:14px;font-weight:600}
+#chart .chip-t{font-size:15px;font-weight:600}
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.lower .panel{margin-bottom:16px}
+.tabs{display:flex;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.tabs button{all:unset;cursor:pointer;padding:10px 16px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;text-align:center}
+.tabs button[aria-pressed=true]{color:#fff;border-bottom-color:#f3f3f3}
+.tabs button:hover{color:#fff}
+.tabs button:focus-visible{outline:2px solid #e8e8e8;outline-offset:-2px}
+.tabs.full button{flex:1}
+.segbar{display:flex;gap:6px;height:7px;margin-bottom:18px}
+.segbar i{display:block;border-radius:4px;min-width:6px}
+.boxes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.box{border:1px solid var(--line2);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.box .tick{width:26px;height:3px;border-radius:2px;margin-bottom:10px}
+.box span{color:var(--muted);font-size:13.5px}
+.box b{font-size:26px;font-weight:600;letter-spacing:-.02em}
+.box b small{font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0}
+.rank{display:grid;gap:14px}
+.rank-r{display:grid;gap:6px}
+.rank-t{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.rank-t span{color:var(--muted)}
+.rank-b{height:6px;background:var(--idle-bg);border-radius:3px}
+.rank-b i{display:block;height:100%;background:#e8e8e8;border-radius:3px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 16px;font-size:13.5px;color:#cfcfcf}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:11px;height:11px;border-radius:3px;display:block}
+.bars{display:flex;gap:12px;height:170px;align-items:flex-end;border-bottom:1px solid var(--line2)}
+.bg{flex:1;display:flex;gap:3px;align-items:flex-end;height:100%;justify-content:center}
+.bg i{width:38%;max-width:14px;border-radius:3px 3px 0 0;display:block}
+.bg .s{background:#e8e8e8}.bg .s.low{background:var(--amber)}.bg .s.empty{background:var(--down);height:2px!important}
+.bg .m{background:#3a3a3a}
+.bl{display:flex;gap:12px;margin-top:8px}
+.bl span{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:12px 12px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+thead th{font-size:12.5px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line2);padding-top:6px;padding-bottom:10px}
+tbody tr:hover{background:var(--hover)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td .sub{display:block;font-size:12px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-ok{background:var(--ok-bg);color:var(--ok)}.b-warn{background:var(--warn-bg);color:var(--warn)}.b-bad{background:var(--bad-bg);color:var(--bad)}.b-idle{background:var(--idle-bg);color:var(--idle)}
+
+/* level bars in table */
+.lv-track{position:relative;height:7px;border-radius:4px;background:#1f1f1f;min-width:110px}
+.lv-fill{position:absolute;inset:0 auto 0 0;border-radius:4px;display:block}
+.lv-fill.ok{background:#e8e8e8}.lv-fill.low{background:var(--amber)}.lv-fill.empty{background:var(--down)}
+.lv-min{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px solid #6a6a6a}
+
+/* controls */
+.btn{cursor:pointer;border:1px solid var(--line2);background:var(--card2);border-radius:12px;padding:8px 16px;font-weight:600;min-height:38px}
+.btn:hover{background:#202020}
+.btn.primary{background:#f3f3f3;color:#0b0b0b;border-color:#f3f3f3}
+.btn.primary:hover{background:#fff}
+.btn.danger{color:var(--bad);border-color:rgba(248,113,113,.45);background:transparent}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:3px 11px;min-height:30px;font-size:12.5px;border-radius:10px}
+.btn.ghost{background:transparent;border-color:transparent;color:#d0d0d0}
+.btn.ghost:hover{background:var(--hover)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.icon{cursor:pointer;border:0;background:transparent;font-size:19px;line-height:1;color:var(--muted);min-width:36px;min-height:36px;border-radius:10px}
+.icon:hover{background:var(--hover);color:var(--bad)}
+input,select,textarea{background:#0f0f0f;border:1px solid var(--line2);border-radius:12px;padding:8px 12px;min-height:40px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid #cfcfcf;outline-offset:-1px;border-color:#cfcfcf}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+label input,label select,label textarea{color:var(--ink);font-weight:400}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:end}
+.toolbar>*{flex:0 1 220px}
+.toolbar .grow{flex:1 1 240px}
+.empty{color:var(--muted);padding:16px 2px;margin:0}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto;z-index:20}
+.modal{background:#121212;border:1px solid #2a2a2a;border-radius:22px;padding:24px;width:min(720px,100%);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal.wide{width:min(900px,100%)}
+.modal h2{font-size:19px;font-weight:600;color:var(--ink);margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 110px 100px 40px;gap:8px;margin-bottom:6px;align-items:center}
+.row .hint{grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:-2px}
+.row .hint.bad{color:var(--bad);font-weight:600}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.err{background:var(--bad-bg);color:var(--bad);border-radius:12px;padding:10px 14px;margin-top:12px;font-size:13px}
+.err ul{margin:0;padding-left:18px}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;margin-bottom:14px}
+.kv dt{color:var(--muted)}.kv dd{margin:0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#f3f3f3;color:#0b0b0b;padding:11px 18px;border-radius:12px;z-index:40;font-weight:600;max-width:90vw}
+#toast[hidden]{display:none}
+#print-area{display:none}
+@media (max-width:1100px){.stats{grid-template-columns:1fr}.lower{grid-template-columns:1fr}}
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  aside{position:static;height:auto;padding:14px 14px 4px}
+  nav{flex-direction:row;overflow-x:auto}
+  nav button{white-space:nowrap}
+  .grp{display:none}
+  .side-bottom{margin-top:6px;padding-top:6px}
+  main{margin:8px;padding:20px 16px 48px;border-radius:20px}
+  .row{grid-template-columns:minmax(0,1fr) 90px 90px 36px}
+}
+@media print{
+  body{background:#fff;color:#000}
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block;font:13px/1.4 "Times New Roman",serif;color:#000;padding:0}
+  #print-area table{border:1px solid #000}
+  #print-area th,#print-area td{border:1px solid #000;color:#000;font-size:12px;padding:5px 8px;white-space:normal}
+  #print-area th{background:#eee;text-transform:none;letter-spacing:0;color:#000}
+  .sig{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:36px;text-align:center}
+  .sig div{height:90px;border-bottom:1px solid #000;margin-bottom:4px}
+}
+/* halaman dalam */
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
+.mini{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px}
+.mini-k{color:var(--muted);font-size:13.5px}
+.mini-v{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.2;margin-top:6px}
+.mini-v small{font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:6px}
+.mini-s{color:var(--muted);font-size:12.5px;margin-top:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;border:1px solid var(--line2);font-weight:600;font-size:13px;color:var(--muted)}
+.chips button:hover{color:#fff;background:var(--hover)}
+.chips button span{background:var(--idle-bg);color:var(--idle);border-radius:999px;padding:0 8px;font-size:12px;line-height:19px}
+.chips button[aria-pressed=true]{background:#f3f3f3;color:#0b0b0b;border-color:#f3f3f3}
+.chips button[aria-pressed=true] span{background:rgba(0,0,0,.12);color:#0b0b0b}
+.chips button:focus-visible{outline:2px solid #e8e8e8;outline-offset:2px}
+.toolbar{align-items:center}
+.toolbar>.chips{flex:0 0 auto}
+.toolbar>label{align-self:end}
+table.clickable tbody tr{cursor:pointer}
+.tl{list-style:none;margin:0 0 4px;padding:0 0 0 4px}
+.tl li{position:relative;padding:0 0 14px 24px;font-size:14px}
+.tl li::before{content:"";position:absolute;left:0;top:6px;width:10px;height:10px;border-radius:50%;background:#f3f3f3}
+.tl li::after{content:"";position:absolute;left:4.5px;top:18px;bottom:-4px;width:1px;background:var(--line2)}
+.tl li:last-child{padding-bottom:0}.tl li:last-child::after{display:none}
+.tl li.bad::before{background:var(--down)}
+.tl small{display:block;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="print-area"></div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+/* =========================================================
+   StokGlove – prototype inventory + surat jalan
+   Data disimpan di localStorage (demo). Versi produksi:
+   pindahkan logika stok ke backend/DB dalam satu transaksi.
+   Prinsip: stok = jumlah semua stock movement (tidak diedit langsung).
+   ========================================================= */
+const KEY = 'stokglove.v2';
+const USERS = ['Staf Gudang 1', 'Staf Gudang 2', 'Owner'];
+const uid = () => Math.random().toString(36).slice(2, 10);
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => new Intl.NumberFormat('id-ID').format(n);
+const fmtDT = ts => new Date(ts).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+const fmtD = s => new Date(s + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'});
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+
+/* ---------- data ---------- */
+function seed() {
+  const types = [['NIT', 'Nitrile', 'Biru', ['S', 'M', 'L', 'XL']], ['LTX', 'Latex', 'Putih', ['M', 'L']], ['VNL', 'Vinyl', 'Bening', ['M', 'L']]];
+  const products = [];
+  types.forEach(([code, name, color, sizes]) => sizes.forEach(sz => products.push({
+    id: uid(), sku: `${code}-${sz}`, name: `Sarung Tangan ${name} ${color} ${sz}`, type: name, size: sz, brand: 'SafeHand',
+    pcsPerBox: 100, boxPerCarton: 10, rak: code === 'NIT' ? 'A1' : code === 'LTX' ? 'B1' : 'C1', min: 5000
+  })));
+  const customers = [
+    {id: uid(), name: 'PT Maju Pangan Sejahtera', info: 'Kawasan Industri Cikarang'},
+    {id: uid(), name: 'PT Sinar Elektronik', info: 'Kawasan Industri Jababeka'},
+    {id: uid(), name: 'PT Garmen Nusantara', info: 'Karawang'}
+  ];
+  const suppliers = [
+    {id: uid(), name: 'CV Karet Prima', info: 'Medan'},
+    {id: uid(), name: 'PT Global Lateks', info: 'Jakarta'}
+  ];
+  // generator deterministik supaya demo selalu sama bentuknya
+  let seedv = 20260923;
+  const rnd = () => (seedv = (seedv * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const plates = ['B 9412 KXA', 'B 9120 FCD', 'B 9733 TFR', 'F 8812 GH', 'B 9077 UOP'];
+  const drivers = ['Slamet', 'Agus', 'Joko', 'Dedi', 'Rahmat'];
+  const staff = ['Staf Gudang 1', 'Staf Gudang 2'];
+  const t0 = new Date(); t0.setHours(9, 0, 0, 0);
+  const baseT = Math.min(Date.now() - 60000, t0.getTime());
+  const day = n => baseT - n * 864e5;
+  const ymd = ts => { const d = new Date(ts); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  const counters = {}, movements = [], receipts = [], dos = [], adjs = [], logs = [], stock = {};
+  const nn = (prefix, date) => { const [y, m] = date.split('-'); const k = `${prefix}/${y}/${m}`; counters[k] = (counters[k] || 0) + 1; return `${k}/${String(counters[k]).padStart(4, '0')}`; };
+  const pcsOf = (p, q, u) => u === 'karton' ? q * p.boxPerCarton * p.pcsPerBox : u === 'box' ? q * p.pcsPerBox : q;
+  const byId = id => products.find(p => p.id === id);
+  const mv = (ts, p, qty, type, ref, user, note) => { movements.push({id: uid(), ts, productId: p.id, qty, type, ref, user, note}); stock[p.id] = (stock[p.id] || 0) + qty; };
+  const sumPcs = items => items.reduce((a, i) => a + pcsOf(byId(i.productId), i.qty, i.unit), 0);
+
+  const initial = [30, 45, 38, 14, 20, 26, 18, 12]; // karton, saldo 30 hari lalu
+  products.forEach((p, i) => mv(day(30), p, initial[i] * 1000, 'IN', 'SALDO AWAL', 'Sistem', 'Saldo awal'));
+  const lowIdx = [3, 7], lowTarget = [3200, 0]; // dua SKU sengaja menipis/habis untuk demo
+
+  const makeSJ = (n, items, cancel) => {
+    const ts = n === 0 ? day(0) : day(n) + Math.floor(rnd() * 6) * 3600e3;
+    const date = ymd(ts), cust = pick(customers), user = pick(staff), no = nn('SJ', date);
+    const doc = {id: uid(), no, date, customerId: cust.id, plate: pick(plates), driver: pick(drivers), note: '', items, status: 'terbit', createdBy: user, createdAt: ts, issuedAt: ts, issuedBy: user};
+    items.forEach(it => { const p = byId(it.productId); mv(ts, p, -pcsOf(p, it.qty, it.unit), 'OUT', no, user, cust.name); });
+    logs.unshift({ts, user, action: 'Surat jalan terbit', detail: `${no} · ${cust.name} · ${doc.plate} · ${fmt(sumPcs(items))} pcs`});
+    if (cancel) {
+      const tc = ts + 3600e3, reason = 'Pelanggan membatalkan pesanan';
+      items.forEach(it => { const p = byId(it.productId); mv(tc, p, pcsOf(p, it.qty, it.unit), 'VOID', no, staff[0], 'Pembatalan: ' + reason); });
+      Object.assign(doc, {status: 'batal', cancelReason: reason, cancelledBy: staff[0], cancelledAt: tc});
+      logs.unshift({ts: tc, user: staff[0], action: 'Surat jalan dibatalkan', detail: `${no} · ${reason}`});
+    }
+    dos.push(doc);
+  };
+  const genItems = excludeLow => {
+    const n = 1 + Math.floor(rnd() * 3), used = new Set(), items = [];
+    for (let k = 0; k < n; k++) {
+      const i = Math.floor(rnd() * products.length);
+      if (used.has(i) || (excludeLow && lowIdx.includes(i))) continue;
+      used.add(i);
+      const p = products[i], unit = rnd() < 0.75 ? 'karton' : 'box';
+      const q = unit === 'karton' ? 1 + Math.floor(rnd() * 3) : 5 + Math.floor(rnd() * 10);
+      if (pcsOf(p, q, unit) <= (stock[p.id] || 0)) items.push({productId: p.id, qty: q, unit});
+    }
+    return items;
+  };
+
+  for (let n = 29; n >= 0; n--) {
+    const wd = new Date(day(n)).getDay();
+    if (n % 6 === 4) { // barang masuk tiap beberapa hari
+      const ts = day(n) + 2 * 3600e3, date = ymd(ts), sup = pick(suppliers), user = pick(staff), no = nn('GR', date);
+      const pool = products.filter((_, i) => !lowIdx.includes(i)), items = [];
+      for (let k = 0; k < 2; k++) { const p = pick(pool); if (!items.some(x => x.productId === p.id)) items.push({productId: p.id, qty: 8 + Math.floor(rnd() * 13), unit: 'karton'}); }
+      items.forEach(it => { const p = byId(it.productId); mv(ts, p, pcsOf(p, it.qty, it.unit), 'IN', no, user, sup.name); });
+      receipts.push({id: uid(), no, date, supplierId: sup.id, ref: 'SJ-PMS-' + (1000 + Math.floor(rnd() * 900)), items, user, createdAt: ts});
+      logs.unshift({ts, user, action: 'Barang masuk', detail: `${no} · ${sup.name} · ${fmt(sumPcs(items))} pcs`});
+    }
+    if (n === 1) { // pesanan besar yang menguras dua SKU tertentu
+      const items = [];
+      lowIdx.forEach((li, k) => {
+        const p = products[li], need = (stock[p.id] || 0) - lowTarget[k];
+        if (need <= 0) return;
+        const boxes = Math.floor(need / p.pcsPerBox), rem = need - boxes * p.pcsPerBox;
+        if (boxes) items.push({productId: p.id, qty: boxes, unit: 'box'});
+        if (rem) items.push({productId: p.id, qty: rem, unit: 'pcs'});
+      });
+      if (items.length) makeSJ(n, items, false);
+    }
+    if (wd !== 0) {
+      const count = wd === 6 ? 1 : (rnd() < 0.4 ? 2 : 1);
+      for (let c = 0; c < count; c++) {
+        const items = genItems(n <= 1);
+        if (items.length) makeSJ(n, items, n === 9 && c === 0);
+      }
+    }
+  }
+
+  const now = Date.now(), freeP = products[0];
+  dos.push({id: uid(), customerId: customers[1].id, date: ymd(now), plate: '', driver: '', note: 'Menunggu konfirmasi jadwal kirim', items: [{productId: freeP.id, qty: 2, unit: 'karton'}], status: 'draft', createdBy: staff[1], createdAt: now - 1800e3});
+  const adjP = products[1], sysPcs = stock[adjP.id] || 0;
+  adjs.push({id: uid(), ts: now - 3 * 3600e3, productId: adjP.id, systemPcs: sysPcs, countPcs: sysPcs - 300, reason: 'Hasil hitung fisik: 3 box tidak ditemukan di rak A1', status: 'pending', user: staff[1]});
+  logs.unshift({ts: now - 3 * 3600e3, user: staff[1], action: 'Koreksi diajukan', detail: `${adjP.sku} · sistem ${fmt(sysPcs)} → fisik ${fmt(sysPcs - 300)} · Hasil hitung fisik: 3 box tidak ditemukan di rak A1`});
+  movements.sort((a, b) => a.ts - b.ts);
+  return {v: 2, user: USERS[0], products, movements, customers, suppliers, receipts, dos, adjs, counters, logs};
+}
+
+function load() { try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch (e) {} return seed(); }
+let S = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function log(action, detail) { S.logs.unshift({ts: Date.now(), user: S.user, action, detail}); S.logs.length = Math.min(S.logs.length, 500); }
+
+/* ---------- helpers bisnis ---------- */
+const P = id => S.products.find(p => p.id === id);
+const custName = id => S.customers.find(c => c.id === id)?.name || '—';
+const suppName = id => S.suppliers.find(c => c.id === id)?.name || '—';
+const isOwner = () => S.user === 'Owner';
+const toPcs = (p, qty, unit) => unit === 'karton' ? qty * p.boxPerCarton * p.pcsPerBox : unit === 'box' ? qty * p.pcsPerBox : qty;
+function stockMap(upTo) { const m = {}; for (const x of S.movements) { if (upTo != null && x.ts > upTo) continue; m[x.productId] = (m[x.productId] || 0) + x.qty; } return m; }
+function breakdown(pcs, p) {
+  if (!p) return fmt(pcs) + ' pcs';
+  const c = p.boxPerCarton * p.pcsPerBox, neg = pcs < 0;
+  let r = Math.abs(pcs); const k = Math.floor(r / c); r -= k * c; const b = Math.floor(r / p.pcsPerBox); r -= b * p.pcsPerBox;
+  const parts = []; if (k) parts.push(k + ' karton'); if (b) parts.push(b + ' box'); if (r || !parts.length) parts.push(r + ' pcs');
+  return (neg ? '−' : '') + parts.join(' ');
+}
+function nextNo(prefix, dateStr) {
+  const [y, m] = dateStr.split('-'); const k = `${prefix}/${y}/${m}`;
+  S.counters[k] = (S.counters[k] || 0) + 1;
+  return `${k}/${String(S.counters[k]).padStart(4, '0')}`;
+}
+const itemsPcs = items => items.reduce((a, i) => a + toPcs(P(i.productId), i.qty, i.unit), 0);
+function badge(s) {
+  const m = {terbit:['ok','Terbit'], draft:['idle','Draft'], batal:['bad','Batal'], pending:['warn','Menunggu owner'], approved:['ok','Disetujui'], rejected:['bad','Ditolak'], low:['warn','Menipis'], empty:['bad','Habis'], ok:['ok','Aman']};
+  const [c, t] = m[s]; return `<span class="badge b-${c}">${t}</span>`;
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2800); }
+
+/* ---------- ikon & bar level ---------- */
+const ICONS = {
+  dashboard: '<rect x="3" y="3" width="7" height="9" rx="1.8"/><rect x="14" y="3" width="7" height="5" rx="1.8"/><rect x="14" y="12" width="7" height="9" rx="1.8"/><rect x="3" y="16" width="7" height="5" rx="1.8"/>',
+  sj: '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>',
+  masuk: '<path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 17v3h16v-3"/>',
+  stok: '<path d="M3 8l9-5 9 5-9 5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+  koreksi: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+  laporan: '<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>',
+  master: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  audit: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+};
+ICONS.search = '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>';
+ICONS.chev = '<path d="M8 9l4-4 4 4"/><path d="M8 15l4 4 4-4"/>';
+const ico = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+function levelBar(s, p, mx) {
+  const st = s <= 0 ? 'empty' : s < p.min ? 'low' : 'ok';
+  return `<div class="lv-track sm" role="img" aria-label="Level stok"><i class="lv-fill ${st}" style="width:${Math.max(2, s / mx * 100)}%"></i><b class="lv-min" style="left:${p.min / mx * 100}%"></b></div>`;
+}
+
+/* ---------- state UI ---------- */
+let V = 'dashboard', TAB = 'produk';
+const F = {sjQ: '', sjStatus: '', stokQ: '', stokFilter: '', adjStatus: '', range: 30, dtab: 'status'};
+const R = (() => { const d = today(); return {from: d.slice(0, 8) + '01', to: d}; })();
+const NAV = [['dashboard','Dashboard'], ['sj','Surat Jalan'], ['masuk','Barang Masuk'], ['stok','Stok'], ['koreksi','Koreksi Stok'], ['laporan','Laporan'], ['master','Master Data'], ['audit','Audit Log']];
+
+/* ---------- komponen ---------- */
+const prodOpts = sel => `<option value="">— pilih barang —</option>` + S.products.map(p => `<option value="${p.id}" ${p.id === sel ? 'selected' : ''}>${esc(p.sku)} — ${esc(p.name)}</option>`).join('');
+const partyOpts = (arr, sel) => `<option value="">— pilih —</option>` + arr.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+const rowHtml = (it = {}) => `<div class="row">
+  <select class="r-prod" aria-label="Barang">${prodOpts(it.productId)}</select>
+  <input class="r-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Jumlah" aria-label="Jumlah" value="${it.qty || ''}">
+  <select class="r-unit" aria-label="Satuan">${['karton', 'box', 'pcs'].map(u => `<option ${u === (it.unit || 'karton') ? 'selected' : ''}>${u}</option>`).join('')}</select>
+  <button class="icon" data-a="delRow" aria-label="Hapus baris" type="button">×</button>
+  <small class="hint"></small></div>`;
+function readRows() {
+  return [...document.querySelectorAll('#rows .row')].map(r => ({
+    productId: r.querySelector('.r-prod').value,
+    qty: parseInt(r.querySelector('.r-qty').value, 10) || 0,
+    unit: r.querySelector('.r-unit').value
+  })).filter(x => x.productId || x.qty);
+}
+function refreshHints() {
+  const rows = [...document.querySelectorAll('#rows .row')]; if (!rows.length) return;
+  const sm = stockMap(), checkOut = !!$('.modal[data-check=out]'), need = {};
+  rows.forEach(r => { const pid = r.querySelector('.r-prod').value; if (!pid) return; const p = P(pid); need[pid] = (need[pid] || 0) + toPcs(p, parseInt(r.querySelector('.r-qty').value, 10) || 0, r.querySelector('.r-unit').value); });
+  rows.forEach(r => {
+    const pid = r.querySelector('.r-prod').value, h = r.querySelector('.hint'); h.className = 'hint';
+    if (!pid) { h.textContent = ''; return; }
+    const p = P(pid), cur = sm[pid] || 0;
+    h.textContent = `Stok saat ini: ${breakdown(cur, p)} (${fmt(cur)} pcs)`;
+    if (checkOut && need[pid] > cur) { h.textContent += ` — melebihi stok, kurang ${fmt(need[pid] - cur)} pcs`; h.classList.add('bad'); }
+  });
+}
+function showErr(list) { const e = $('#err'); if (!e) return; e.hidden = false; e.innerHTML = `<ul>${list.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; e.scrollIntoView({block: 'nearest'}); }
+function modal(html, cls = '', attrs = '') {
+  closeModal();
+  const o = document.createElement('div'); o.className = 'overlay'; o.id = 'ov';
+  o.innerHTML = `<div class="modal ${cls}" role="dialog" aria-modal="true" ${attrs}>${html}</div>`;
+  document.body.appendChild(o); const f = o.querySelector('input,select,textarea'); if (f) f.focus(); return o;
+}
+function closeModal() { $('#ov')?.remove(); }
+
+/* ---------- views ---------- */
+const views = {};
+/* ---------- grafik stok ---------- */
+const CW = 960, CH = 300, CPL = 48, CPR = 16, CPT = 14, CPB = 44;
+let CH_PTS = null;
+const sumMap = m => Object.values(m).reduce((a, b) => a + b, 0);
+const niceStep = r => { const p = Math.pow(10, Math.floor(Math.log10(r || 1))), n = r / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; };
+const isoDaysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+function stockSeries(days) {
+  const end = new Date(); end.setHours(23, 59, 59, 999);
+  const out = [];
+  for (let i = days - 1; i >= 0; i--) { const t = Math.min(end.getTime() - i * 864e5, Date.now()); out.push({t, v: sumMap(stockMap(t)) / 1000}); }
+  return out;
+}
+function chartHtml(pts) {
+  const n = pts.length, vmax = Math.max(...pts.map(p => p.v), 1), step = niceStep(vmax * 1.05 / 4), top = step * 4;
+  const x = i => CPL + i / (n - 1) * (CW - CPL - CPR), y = v => CPT + (1 - v / top) * (CH - CPT - CPB);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
+  const area = `${line} L${x(n - 1).toFixed(1)} ${y(0)} L${x(0)} ${y(0)} Z`;
+  const grid = [0, 1, 2, 3, 4].map(k => { const v = step * k, yy = y(v); return `<line x1="${CPL}" x2="${CW - CPR}" y1="${yy}" y2="${yy}" class="gl"/><text x="${CPL - 10}" y="${yy + 4}" text-anchor="end" class="ax">${fmt(v)}</text>`; }).join('');
+  const idx = n <= 8 ? pts.map((_, i) => i) : [0, 1, 2, 3, 4, 5].map(k => Math.round(k * (n - 1) / 5));
+  const xl = idx.map(i => `<text x="${x(i)}" y="${CH - 14}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}" class="ax">${new Date(pts[i].t).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}</text>`).join('');
+  return `<svg id="chart" viewBox="0 0 ${CW} ${CH}" role="img" aria-label="Grafik total stok (karton) dari waktu ke waktu" data-top="${top}">
+    <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#ga)"/><path d="${line}" fill="none" stroke="#e8e8e8" stroke-width="1.6" stroke-linejoin="round"/>${xl}
+    <g id="cur"><line id="c-line" y1="${CPT}" y2="${CH - CPB}" class="cl"/><circle id="c-dot" r="5.5" class="cd"/>
+      <g><rect id="c-chip-r" width="78" height="28" rx="14" y="${CH - 30}" fill="#fff"/><text id="c-chip-t" y="${CH - 11}" text-anchor="middle" fill="#0b0b0b" class="chip-t"></text></g>
+      <g><rect id="c-tip-r" width="190" height="56" rx="12"/><text id="c-t1" class="tp1"></text><circle id="c-tip-dot" r="5" fill="#f3f3f3"/><text id="c-t2" class="tp2"></text></g></g></svg>`;
+}
+function bindChart() {
+  const svg = $('#chart'); if (!svg || !CH_PTS) return;
+  const pts = CH_PTS, n = pts.length, top = parseFloat(svg.dataset.top);
+  const x = i => CPL + i / (n - 1) * (CW - CPL - CPR), y = v => CPT + (1 - v / top) * (CH - CPT - CPB);
+  const at = (id, o) => { const e = $('#' + id); for (const k in o) e.setAttribute(k, o[k]); return e; };
+  const set = i => {
+    const p = pts[i], px = x(i), py = y(p.v), dt = new Date(p.t);
+    at('c-line', {x1: px, x2: px}); at('c-dot', {cx: px, cy: py});
+    const ct = at('c-chip-t', {}); ct.textContent = dt.toLocaleDateString('id-ID', {day: 'numeric', month: 'short'});
+    const cx = Math.min(Math.max(px, 41), CW - 41); at('c-chip-r', {x: cx - 39}); ct.setAttribute('x', cx);
+    const tw = 190, th = 56, tx = px > CW - tw - 40 ? px - 16 - tw : px + 16, ty = Math.max(CPT, py - th - 12);
+    at('c-tip-r', {x: tx, y: ty});
+    const t1 = at('c-t1', {x: tx + 16, y: ty + 23}); t1.textContent = dt.toLocaleDateString('id-ID', {weekday: 'short', day: 'numeric', month: 'short'});
+    at('c-tip-dot', {cx: tx + 21, cy: ty + 40});
+    const t2 = at('c-t2', {x: tx + 34, y: ty + 45}); t2.textContent = `Stok  ${fmt(Math.round(p.v * 10) / 10)} karton`;
+  };
+  set(n - 1);
+  svg.addEventListener('pointermove', e => { const r = svg.getBoundingClientRect(), vx = (e.clientX - r.left) / r.width * CW; set(Math.max(0, Math.min(n - 1, Math.round((vx - CPL) / (CW - CPL - CPR) * (n - 1))))); });
+  svg.addEventListener('pointerleave', () => set(n - 1));
+}
+
+/* ---------- dashboard ---------- */
+views.dashboard = () => {
+  const now = Date.now(), W7 = 7 * 864e5;
+  const sm = stockMap(), total = sumMap(sm), prevTotal = sumMap(stockMap(now - W7));
+  const outIn = (a, b) => -S.movements.filter(m => (m.type === 'OUT' || m.type === 'VOID') && m.ts > a && m.ts <= b).reduce((s, m) => s + m.qty, 0);
+  const sjIn = (a, b) => S.dos.filter(d => d.status !== 'draft' && d.issuedAt > a && d.issuedAt <= b).length;
+  const dlt = (cur, prev) => { if (!prev) return cur ? {c: 'up', t: 'baru'} : {c: 'flat', t: '—'}; const p = (cur - prev) / prev * 100; return {c: p > 0.05 ? 'up' : p < -0.05 ? 'down' : 'flat', t: Math.abs(p).toFixed(1) + '%'}; };
+  const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n));
+  const r1 = v => Math.round(v * 10) / 10;
+  const stat = (label, big, unit, d, diff) => `<div class="stat"><div class="stat-h"><span>${label}</span><span class="delta ${d.c}">${d.t}</span></div><div class="stat-v"><b>${big}</b>${unit ? `<small class="u">${unit}</small>` : ''}<span class="dd ${d.c}">${diff}</span><span class="vs">vs minggu lalu</span></div></div>`;
+  const sjCur = sjIn(now - W7, now), sjPrev = sjIn(now - 2 * W7, now - W7);
+  const outCur = outIn(now - W7, now), outPrev = outIn(now - 2 * W7, now - W7);
+
+  const days = F.range, pts = stockSeries(days); CH_PTS = pts;
+  const first = pts[0].v, last = pts[pts.length - 1].v, cd = dlt(last, first);
+
+  const d0 = isoDaysAgo(29), docs = S.dos.filter(d => d.date >= d0);
+  const cT = docs.filter(d => d.status === 'terbit').length, cD = docs.filter(d => d.status === 'draft').length, cB = docs.filter(d => d.status === 'batal').length;
+  const tot = cT + cD + cB, outPcs = docs.filter(d => d.status === 'terbit').reduce((a, d) => a + itemsPcs(d.items), 0);
+  const seg = (n, color) => n ? `<i style="flex:${n};background:${color}"></i>` : '';
+  const statusTab = `<div class="segbar">${tot ? seg(cT, '#f3f3f3') + seg(cD, '#4a4a4a') + seg(cB, '#8d8d8d') : '<i style="flex:1;background:#2a2a2a"></i>'}</div>
+    <div class="boxes">
+      <div class="box"><i class="tick" style="background:#f3f3f3"></i><span>Terbit</span><b>${cT} <small>surat jalan</small></b></div>
+      <div class="box"><i class="tick" style="background:#4a4a4a"></i><span>Draft</span><b>${cD} <small>surat jalan</small></b></div>
+      <div class="box"><i class="tick" style="background:#8d8d8d"></i><span>Dibatalkan</span><b>${cB} <small>surat jalan</small></b></div>
+      <div class="box"><i class="tick" style="background:#3ecf8e"></i><span>Barang keluar</span><b>${r1(outPcs / 1000)} <small>karton</small></b></div>
+    </div>`;
+  const byC = {};
+  docs.filter(d => d.status === 'terbit').forEach(d => { const c = byC[d.customerId] ||= {n: 0, pcs: 0}; c.n++; c.pcs += itemsPcs(d.items); });
+  const ranked = Object.entries(byC).sort((a, b) => b[1].pcs - a[1].pcs).slice(0, 5), topPcs = ranked.length ? ranked[0][1].pcs : 1;
+  const custTab = ranked.length ? `<div class="rank">${ranked.map(([id, c]) => `<div class="rank-r"><div class="rank-t"><div>${esc(custName(id))}</div><span>${c.n} SJ · ${r1(c.pcs / 1000)} karton</span></div><div class="rank-b"><i style="width:${c.pcs / topPcs * 100}%"></i></div></div>`).join('')}</div>` : `<p class="empty">Belum ada surat jalan terbit dalam 30 hari terakhir.</p>`;
+
+  const okCount = S.products.filter(p => (sm[p.id] || 0) >= p.min).length, mx = Math.max(1, ...S.products.map(p => Math.max(sm[p.id] || 0, p.min)));
+  const bars = S.products.map(p => { const s = sm[p.id] || 0, st = s <= 0 ? 'empty' : s < p.min ? 'low' : ''; return `<div class="bg" title="${esc(p.sku)}: ${fmt(s)} pcs, minimum ${fmt(p.min)}"><i class="s ${st}" style="height:${Math.max(s / mx * 100, s > 0 ? 1.5 : 0)}%"></i><i class="m" style="height:${p.min / mx * 100}%"></i></div>`; }).join('');
+  const labels = S.products.map(p => `<span>${esc(p.sku)}</span>`).join('');
+  const recent = S.dos.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 6);
+
+  return `
+  <div class="top"><h1>Dashboard</h1>
+    ${isOwner() ? '' : `<div class="btns"><button class="btn" data-a="newGR">Catat barang masuk</button><button class="btn primary" data-a="newDO">+ Surat jalan baru</button></div>`}</div>
+  <div class="stats">
+    ${stat('Total stok', fmt(r1(total / 1000)), 'karton', dlt(total, prevTotal), sgn(r1((total - prevTotal) / 1000)))}
+    ${stat('Surat jalan terbit', sjCur, '', dlt(sjCur, sjPrev), sgn(sjCur - sjPrev))}
+    ${stat('Barang keluar', fmt(r1(outCur / 1000)), 'karton', dlt(outCur, outPrev), sgn(r1((outCur - outPrev) / 1000)))}
+  </div>
+  <section class="panel">
+    <div class="chart-h"><div><div class="muted">Total stok dari waktu ke waktu</div><div class="big">${fmt(r1(last))}<small>karton</small></div></div>
+      <div class="chart-r"><span class="delta ${cd.c}">${cd.t} vs ${days} hari lalu</span>
+      <div class="seg-btns" role="group" aria-label="Rentang waktu">${[7, 30].map(d => `<button data-a="range" data-d="${d}" aria-pressed="${F.range === d}">${d} hari</button>`).join('')}</div></div></div>
+    ${chartHtml(pts)}
+  </section>
+  <div class="lower">
+    <section class="panel"><h2>Surat jalan, 30 hari terakhir</h2>
+      <div class="tabs full" role="group" aria-label="Tampilan"><button data-a="dtab" data-t="status" aria-pressed="${F.dtab === 'status'}">Status</button><button data-a="dtab" data-t="cust" aria-pressed="${F.dtab === 'cust'}">Pelanggan</button></div>
+      ${F.dtab === 'cust' ? custTab : statusTab}
+    </section>
+    <section class="panel"><h2>Level stok per SKU</h2>
+      <div class="big">${Math.round(okCount / S.products.length * 100)}%<small>SKU di atas minimum</small></div>
+      <div class="legend"><span><i style="background:#e8e8e8"></i>Stok</span><span><i style="background:#3a3a3a"></i>Minimum</span><span><i style="background:var(--amber)"></i>Menipis</span><span><i style="background:var(--down)"></i>Habis</span></div>
+      <div class="bars">${bars}</div><div class="bl">${labels}</div>
+    </section>
+  </div>
+  <section class="panel"><div class="panel-h"><h2>Surat jalan terbaru</h2><button class="btn sm ghost" data-a="nav" data-v="sj">Lihat semua</button></div>
+    ${recent.length ? `<div class="scroll"><table><thead><tr><th>No.</th><th>Tanggal</th><th>Pelanggan</th><th>Kendaraan</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+    ${recent.map(d => `<tr><td><button class="btn sm ghost" data-a="viewDO" data-id="${d.id}">${esc(d.no || 'DRAFT')}</button></td><td>${fmtD(d.date)}</td><td>${esc(custName(d.customerId))}</td><td>${esc(d.plate || '—')}</td><td class="num">${fmt(itemsPcs(d.items))} pcs</td><td>${badge(d.status)}</td></tr>`).join('')}
+    </tbody></table></div>` : `<p class="empty">Belum ada surat jalan. Buat yang pertama dengan tombol di kanan atas.</p>`}
+  </section>`;
+};
+
+/* ---------- komponen halaman ---------- */
+const r1 = v => Math.round(v * 10) / 10;
+const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n));
+const chip = (key, val, label, count, cur) => `<button data-a="chip" data-k="${key}" data-v="${val}" aria-pressed="${cur === val}">${label}${count != null ? `<span>${count}</span>` : ''}</button>`;
+const mini = (label, value, unit, sub) => `<div class="mini"><div class="mini-k">${label}</div><div class="mini-v">${value}${unit ? `<small>${unit}</small>` : ''}</div>${sub ? `<div class="mini-s">${sub}</div>` : ''}</div>`;
+const itemsSummary = items => items.slice(0, 2).map(i => `${esc(P(i.productId).sku)} ×${fmt(i.qty)} ${i.unit}`).join(', ') + (items.length > 2 ? ` +${items.length - 2}` : '');
+const addBtn = (a, label) => isOwner() ? '' : `<button class="btn primary" data-a="${a}">${label}</button>`;
+
+/* ---------- surat jalan ---------- */
+function sjTable() {
+  const q = F.sjQ.toLowerCase();
+  const rows = S.dos.slice().sort((a, b) => b.createdAt - a.createdAt).filter(d => (!F.sjStatus || d.status === F.sjStatus) && (!q || [d.no, d.plate, d.driver, custName(d.customerId)].join(' ').toLowerCase().includes(q)));
+  if (!rows.length) return `<p class="empty">Tidak ada surat jalan yang cocok.</p>`;
+  return `<div class="scroll"><table class="clickable"><thead><tr><th>No.</th><th>Tanggal</th><th>Pelanggan</th><th>Kendaraan</th><th>Barang</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+  ${rows.map(d => `<tr data-a="viewDO" data-id="${d.id}">
+    <td><button class="btn sm ghost" data-a="viewDO" data-id="${d.id}">${esc(d.no || 'DRAFT')}</button></td><td>${fmtD(d.date)}</td><td>${esc(custName(d.customerId))}</td>
+    <td>${esc(d.plate || '—')}<span class="sub">${esc(d.driver || '')}</span></td><td>${itemsSummary(d.items)}</td>
+    <td class="num">${fmt(itemsPcs(d.items))} pcs<span class="sub">${r1(itemsPcs(d.items) / 1000)} karton</span></td><td>${badge(d.status)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+views.sj = () => {
+  const mk = today().slice(0, 7), cnt = s => S.dos.filter(d => d.status === s).length;
+  const month = S.dos.filter(d => d.date.startsWith(mk) && d.status === 'terbit');
+  return `<div class="top"><div><h1>Surat Jalan</h1><p>Setiap barang keluar wajib lewat surat jalan. Stok berkurang saat diterbitkan.</p></div>${addBtn('newDO', '+ Surat jalan baru')}</div>
+  <div class="minis">${mini('Terbit bulan ini', month.length, 'surat jalan')}${mini('Barang keluar bulan ini', r1(month.reduce((a, d) => a + itemsPcs(d.items), 0) / 1000), 'karton')}${mini('Draft', cnt('draft'), '', 'belum terbit')}${mini('Dibatalkan', cnt('batal'), '', 'semua waktu')}</div>
+  <section class="panel">
+    <div class="toolbar"><div class="chips" role="group" aria-label="Filter status">${[['', 'Semua', S.dos.length], ['terbit', 'Terbit', cnt('terbit')], ['draft', 'Draft', cnt('draft')], ['batal', 'Batal', cnt('batal')]].map(([v, l, n]) => chip('sjStatus', v, l, n, F.sjStatus)).join('')}</div>
+    <input class="grow" id="sjq" type="search" aria-label="Cari surat jalan" placeholder="Cari no., pelanggan, plat, sopir" value="${esc(F.sjQ)}"></div>
+    <div id="sj-body">${sjTable()}</div>
+  </section>`;
+};
+
+/* ---------- barang masuk ---------- */
+views.masuk = () => {
+  const rows = S.receipts.slice().sort((a, b) => b.createdAt - a.createdAt), mk = today().slice(0, 7), m = rows.filter(r => r.date.startsWith(mk));
+  return `<div class="top"><div><h1>Barang Masuk</h1><p>Penerimaan barang dari pemasok. Stok bertambah saat dokumen disimpan.</p></div>${addBtn('newGR', '+ Catat barang masuk')}</div>
+  <div class="minis">${mini('Penerimaan bulan ini', m.length, 'dokumen')}${mini('Barang masuk bulan ini', r1(m.reduce((a, r) => a + itemsPcs(r.items), 0) / 1000), 'karton')}${mini('Pemasok terdaftar', S.suppliers.length, '')}</div>
+  <section class="panel">${rows.length ? `<div class="scroll"><table class="clickable"><thead><tr><th>No.</th><th>Tanggal</th><th>Pemasok</th><th>Ref. pemasok</th><th>Barang</th><th class="num">Total</th><th>Petugas</th></tr></thead><tbody>
+  ${rows.map(r => `<tr data-a="viewGR" data-id="${r.id}"><td><button class="btn sm ghost" data-a="viewGR" data-id="${r.id}">${esc(r.no)}</button></td><td>${fmtD(r.date)}</td><td>${esc(suppName(r.supplierId))}</td><td>${esc(r.ref || '—')}</td><td>${itemsSummary(r.items)}</td><td class="num">${fmt(itemsPcs(r.items))} pcs<span class="sub">${r1(itemsPcs(r.items) / 1000)} karton</span></td><td>${esc(r.user)}</td></tr>`).join('')}
+  </tbody></table></div>` : `<p class="empty">Belum ada penerimaan barang tercatat.</p>`}</section>`;
+};
+
+/* ---------- stok ---------- */
+const stockState = (s, p) => s <= 0 ? 'empty' : s < p.min ? 'low' : 'ok';
+function stokTable() {
+  const sm = stockMap(), q = F.stokQ.toLowerCase();
+  const mx = Math.max(1, ...S.products.map(p => Math.max(sm[p.id] || 0, p.min)));
+  const rows = S.products.filter(p => (!F.stokFilter || (F.stokFilter === 'low' ? stockState(sm[p.id] || 0, p) !== 'ok' : stockState(sm[p.id] || 0, p) === 'empty')) && (!q || [p.sku, p.name, p.brand, p.rak].join(' ').toLowerCase().includes(q)));
+  if (!rows.length) return `<p class="empty">Barang tidak ditemukan.</p>`;
+  return `<div class="scroll"><table><thead><tr><th>SKU</th><th>Barang</th><th>Rak</th><th class="num">Stok</th><th>Level</th><th>Status</th><th></th></tr></thead><tbody>
+  ${rows.map(p => { const s = sm[p.id] || 0, st = stockState(s, p); return `<tr>
+    <td><strong>${esc(p.sku)}</strong></td><td>${esc(p.name)}<span class="sub">${esc(p.brand)} · 1 box = ${p.pcsPerBox} pcs · 1 karton = ${p.boxPerCarton} box</span></td><td>${esc(p.rak)}</td>
+    <td class="num">${fmt(s)} pcs<span class="sub">${breakdown(s, p)}</span></td><td>${levelBar(s, p, mx)}</td><td>${badge(st)}</td>
+    <td><button class="btn sm" data-a="kartu" data-id="${p.id}">Kartu stok</button> ${isOwner() ? '' : `<button class="btn sm" data-a="newAdj" data-id="${p.id}">Koreksi</button>`}</td></tr>`; }).join('')}
+  </tbody></table></div>`;
+}
+views.stok = () => {
+  const sm = stockMap(), total = sumMap(sm);
+  const n = k => S.products.filter(p => k === 'low' ? stockState(sm[p.id] || 0, p) === 'low' : stockState(sm[p.id] || 0, p) === 'empty').length;
+  const lowAll = n('low') + n('empty');
+  return `<div class="top"><div><h1>Stok</h1><p>Stok dihitung dari seluruh pergerakan barang, bukan diedit langsung.</p></div></div>
+  <div class="minis">${mini('SKU aktif', S.products.length, '')}${mini('Total stok', fmt(r1(total / 1000)), 'karton', `${fmt(total)} pcs`)}${mini('Di bawah minimum', n('low'), 'SKU')}${mini('Habis', n('empty'), 'SKU')}</div>
+  <section class="panel">
+    <div class="toolbar"><div class="chips" role="group" aria-label="Filter stok">${[['', 'Semua', S.products.length], ['low', 'Perlu restok', lowAll], ['empty', 'Habis', n('empty')]].map(([v, l, c]) => chip('stokFilter', v, l, c, F.stokFilter)).join('')}</div>
+    <input class="grow" id="stokq" type="search" aria-label="Cari barang" placeholder="Cari SKU, nama, merek, rak" value="${esc(F.stokQ)}"></div>
+    <div id="stok-body">${stokTable()}</div>
+  </section>`;
+};
+
+/* ---------- koreksi ---------- */
+views.koreksi = () => {
+  const all = S.adjs.slice().sort((a, b) => b.ts - a.ts), cnt = s => all.filter(a => a.status === s).length;
+  const rows = all.filter(a => !F.adjStatus || a.status === F.adjStatus);
+  return `<div class="top"><div><h1>Koreksi Stok</h1><p>Selisih fisik vs sistem harus beralasan dan disetujui owner sebelum stok berubah.</p></div>${addBtn('newAdj', '+ Ajukan koreksi')}</div>
+  ${isOwner() ? '<div class="banner">Anda masuk sebagai Owner: setujui atau tolak pengajuan koreksi di bawah.</div>' : ''}
+  <section class="panel">
+    <div class="toolbar"><div class="chips" role="group" aria-label="Filter status">${[['', 'Semua', all.length], ['pending', 'Menunggu', cnt('pending')], ['approved', 'Disetujui', cnt('approved')], ['rejected', 'Ditolak', cnt('rejected')]].map(([v, l, c]) => chip('adjStatus', v, l, c, F.adjStatus)).join('')}</div></div>
+    ${rows.length ? `<div class="scroll"><table><thead><tr><th>Waktu</th><th>Barang</th><th class="num">Sistem</th><th class="num">Fisik</th><th class="num">Selisih</th><th>Alasan</th><th>Status</th><th></th></tr></thead><tbody>
+  ${rows.map(a => { const p = P(a.productId), diff = a.status === 'approved' ? a.appliedDiff : a.countPcs - a.systemPcs; return `<tr>
+    <td>${fmtDT(a.ts)}<span class="sub">${esc(a.user)}</span></td><td>${esc(p.sku)}</td>
+    <td class="num">${fmt(a.systemPcs)}</td><td class="num">${fmt(a.countPcs)}</td><td class="num"><strong class="${diff > 0 ? 'up' : diff < 0 ? 'down' : ''}">${sgn(diff)}</strong></td>
+    <td style="white-space:normal;min-width:200px">${esc(a.reason)}</td><td>${badge(a.status)}${a.decidedBy ? `<span class="sub">${esc(a.decidedBy)}</span>` : ''}</td>
+    <td>${a.status === 'pending' ? (isOwner() ? `<button class="btn sm primary" data-a="approveAdj" data-id="${a.id}">Setujui</button> <button class="btn sm danger" data-a="rejectAdj" data-id="${a.id}">Tolak</button>` : '<span class="sub">Menunggu owner</span>') : ''}</td></tr>`; }).join('')}
+  </tbody></table></div>` : `<p class="empty">Tidak ada pengajuan koreksi pada filter ini.</p>`}</section>`;
+};
+
+function reportData() {
+  const from = new Date(R.from + 'T00:00:00').getTime(), to = new Date(R.to + 'T23:59:59.999').getTime();
+  const rows = S.products.map(p => {
+    let awal = 0, masuk = 0, keluar = 0, batal = 0, koreksi = 0;
+    for (const m of S.movements) {
+      if (m.productId !== p.id) continue;
+      if (m.ts < from) awal += m.qty;
+      else if (m.ts <= to) { if (m.type === 'IN') masuk += m.qty; else if (m.type === 'OUT') keluar += m.qty; else if (m.type === 'VOID') batal += m.qty; else koreksi += m.qty; }
+    }
+    return {p, awal, masuk, keluar, batal, koreksi, akhir: awal + masuk + keluar + batal + koreksi};
+  });
+  const byCust = {};
+  S.dos.filter(d => d.status === 'terbit' && d.date >= R.from && d.date <= R.to).forEach(d => { const c = byCust[d.customerId] ||= {n: 0, pcs: 0}; c.n++; c.pcs += itemsPcs(d.items); });
+  return {rows, byCust};
+}
+views.laporan = () => {
+  const {rows, byCust} = reportData();
+  const sum = k => rows.reduce((a, r) => a + r[k], 0);
+  const t = today(), cur = R.to !== t ? '' : R.from === t.slice(0, 8) + '01' ? 'month' : R.from === isoDaysAgo(6) ? '7' : R.from === isoDaysAgo(29) ? '30' : '';
+  return `<div class="top"><div><h1>Laporan</h1><p>Mutasi stok per periode dan barang keluar per pelanggan.</p></div><button class="btn" data-a="csv">Unduh CSV</button></div>
+  <div class="toolbar"><div class="chips" role="group" aria-label="Periode cepat">${[['7', '7 hari'], ['30', '30 hari'], ['month', 'Bulan ini']].map(([p, l]) => `<button data-a="preset" data-p="${p}" aria-pressed="${cur === p}">${l}</button>`).join('')}</div>
+    <label>Dari<input type="date" id="rfrom" value="${R.from}"></label><label>Sampai<input type="date" id="rto" value="${R.to}"></label></div>
+  <div class="minis">${mini('Masuk', r1(sum('masuk') / 1000), 'karton')}${mini('Keluar', r1(-sum('keluar') / 1000), 'karton')}${mini('Batal SJ', r1(sum('batal') / 1000), 'karton', 'dikembalikan ke stok')}${mini('Koreksi', sgn(r1(sum('koreksi') / 1000)), 'karton')}${mini('Stok akhir', r1(sum('akhir') / 1000), 'karton')}</div>
+  <section class="panel"><h2>Mutasi stok (pcs)</h2><div class="scroll"><table><thead><tr><th>SKU</th><th class="num">Awal</th><th class="num">Masuk</th><th class="num">Keluar</th><th class="num">Batal SJ</th><th class="num">Koreksi</th><th class="num">Akhir</th></tr></thead><tbody>
+  ${rows.map(r => `<tr><td><strong>${esc(r.p.sku)}</strong></td><td class="num">${fmt(r.awal)}</td><td class="num">${fmt(r.masuk)}</td><td class="num">${fmt(r.keluar)}</td><td class="num">${fmt(r.batal)}</td><td class="num">${fmt(r.koreksi)}</td><td class="num"><strong>${fmt(r.akhir)}</strong></td></tr>`).join('')}
+  </tbody></table></div></section>
+  <section class="panel"><h2>Barang keluar per pelanggan</h2>
+  ${Object.keys(byCust).length ? `<div class="scroll"><table><thead><tr><th>Pelanggan</th><th class="num">Jumlah SJ</th><th class="num">Total (pcs)</th><th class="num">Setara karton</th></tr></thead><tbody>
+  ${Object.entries(byCust).sort((a, b) => b[1].pcs - a[1].pcs).map(([id, c]) => `<tr><td>${esc(custName(id))}</td><td class="num">${c.n}</td><td class="num">${fmt(c.pcs)}</td><td class="num">${r1(c.pcs / 1000)}</td></tr>`).join('')}</tbody></table></div>` : `<p class="empty">Tidak ada surat jalan terbit pada periode ini.</p>`}</section>`;
+};
+
+views.master = () => {
+  const head = (title, btn) => `<div class="top"><div><h1>Master Data</h1><p>${title}</p></div>${isOwner() ? '' : btn}</div>`;
+  const tabs = `<div class="tabs">${[['produk', 'Produk'], ['customers', 'Pelanggan'], ['suppliers', 'Pemasok']].map(([k, t]) => `<button data-a="tab" data-t="${k}" aria-pressed="${TAB === k}">${t}</button>`).join('')}</div>`;
+  if (TAB === 'produk') return head('Barang, satuan, dan konversinya.', `<button class="btn primary" data-a="newProd">+ Produk</button>`) + tabs +
+    `<section class="panel"><div class="scroll"><table><thead><tr><th>SKU</th><th>Nama</th><th>Merek</th><th>Rak</th><th class="num">Box</th><th class="num">Karton</th><th class="num">Min. stok</th><th></th></tr></thead><tbody>
+    ${S.products.map(p => `<tr><td><strong>${esc(p.sku)}</strong></td><td>${esc(p.name)}</td><td>${esc(p.brand)}</td><td>${esc(p.rak)}</td><td class="num">${p.pcsPerBox} pcs</td><td class="num">${p.boxPerCarton} box</td><td class="num">${fmt(p.min)}</td><td>${isOwner() ? '' : `<button class="btn sm" data-a="editProd" data-id="${p.id}">Ubah</button>`}</td></tr>`).join('')}</tbody></table></div></section>`;
+  const key = TAB, list = S[key];
+  return head(key === 'customers' ? 'Daftar pelanggan.' : 'Daftar pemasok.', `<button class="btn primary" data-a="newParty">+ ${key === 'customers' ? 'Pelanggan' : 'Pemasok'}</button>`) + tabs +
+    `<section class="panel">${list.length ? `<div class="scroll"><table><thead><tr><th>Nama</th><th>Alamat / kontak</th></tr></thead><tbody>${list.map(x => `<tr><td><strong>${esc(x.name)}</strong></td><td>${esc(x.info)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">Belum ada data.</p>'}</section>`;
+};
+
+views.audit = () => `<div class="top"><div><h1>Audit Log</h1><p>Jejak semua aksi penting. Tidak bisa dihapus dari aplikasi.</p></div></div>
+  <section class="panel">${S.logs.length ? `<div class="scroll"><table><thead><tr><th>Waktu</th><th>Pengguna</th><th>Aksi</th><th>Detail</th></tr></thead><tbody>
+  ${S.logs.slice(0, 200).map(l => `<tr><td>${fmtDT(l.ts)}</td><td>${esc(l.user)}</td><td><strong>${esc(l.action)}</strong></td><td style="white-space:normal">${esc(l.detail)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">Belum ada aktivitas.</p>'}</section>`;
+
+/* ---------- render ---------- */
+function render() {
+  const sm = stockMap();
+  const low = S.products.filter(p => (sm[p.id] || 0) < p.min).length;
+  const pend = S.adjs.filter(a => a.status === 'pending').length, drafts = S.dos.filter(d => d.status === 'draft').length;
+  const groups = [['Operasional', ['dashboard', 'sj', 'masuk', 'stok', 'koreksi']], ['Data &amp; kontrol', ['laporan', 'master', 'audit']]];
+  const nav = groups.map(([g, keys]) => `<div class="grp">${g}</div>` + keys.map(k => `<button data-a="nav" data-v="${k}" ${V === k ? 'aria-current="page"' : ''}>${ico(k)}<span class="nl">${NAV.find(n => n[0] === k)[1]}</span>${k === 'koreksi' && pend ? `<span class="pill">${pend}</span>` : ''}</button>`).join('')).join('');
+  const todo = [];
+  if (low) todo.push(['stok', `${low} SKU di bawah minimum`]);
+  if (pend) todo.push(['koreksi', `${pend} koreksi menunggu owner`]);
+  if (drafts) todo.push(['sj', `${drafts} draft surat jalan`]);
+  const initials = S.user.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  $('#app').innerHTML = `<div class="shell">
+  <aside>
+    <div class="logo"><span class="mark">${ico('stok')}</span><span>StokGlove<small>Inventory &amp; surat jalan</small></span></div>
+    <div class="search">${ico('search')}<input id="gsearch" type="search" placeholder="Cari barang…" aria-label="Cari barang di stok" autocomplete="off"><kbd>⌘ K</kbd></div>
+    <nav aria-label="Menu utama">${nav}</nav>
+    <div class="side-bottom">
+      <div class="note"><div class="note-t">${ico('koreksi')}Perlu tindakan</div>${todo.length ? todo.map(([k, t]) => `<button data-a="nav" data-v="${k}">${t}</button>`).join('') : '<p>Semua aman, tidak ada antrean.</p>'}</div>
+      <button class="reset" data-a="reset">Reset data demo</button>
+      <div class="user"><span class="av" aria-hidden="true">${esc(initials)}</span><span class="u-t"><b>${esc(S.user)}</b><small>${isOwner() ? 'Pemilik · lihat &amp; setujui' : 'Staf gudang'}</small></span>${ico('chev')}
+        <select id="who" aria-label="Masuk sebagai">${USERS.map(u => `<option ${u === S.user ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
+    </div>
+  </aside>
+  <main>${isOwner() && V !== 'koreksi' ? '<div class="banner">Mode Owner: hanya melihat laporan dan menyetujui koreksi stok.</div>' : ''}${views[V]()}</main></div>`;
+  if (V === 'dashboard') bindChart();
+}
+
+/* ---------- surat jalan ---------- */
+function openDO(id) {
+  const d = id ? S.dos.find(x => x.id === id) : null;
+  const items = d ? d.items : [{unit: 'karton'}];
+  modal(`<h2>${d ? 'Ubah draft surat jalan' : 'Surat jalan baru'}</h2>
+  <div class="grid2">
+    <label>Pelanggan<select id="f-cust">${partyOpts(S.customers, d?.customerId)}</select></label>
+    <label>Tanggal<input type="date" id="f-date" value="${d?.date || today()}"></label>
+    <label>Plat nomor kendaraan<input id="f-plate" value="${esc(d?.plate || '')}" placeholder="B 1234 XYZ" autocomplete="off"></label>
+    <label>Nama sopir<input id="f-driver" value="${esc(d?.driver || '')}" autocomplete="off"></label>
+  </div>
+  <label>Catatan<input id="f-note" value="${esc(d?.note || '')}"></label>
+  <h3>Barang</h3><div id="rows">${items.map(rowHtml).join('')}</div>
+  <button class="btn sm ghost" data-a="addRow" type="button">+ Tambah baris</button>
+  <div id="err" class="err" hidden></div>
+  <div class="actions"><button class="btn ghost" data-a="closeModal">Tutup</button>
+    <button class="btn" data-a="saveDO" data-id="${id || ''}" data-issue="0">Simpan draft</button>
+    <button class="btn primary" data-a="saveDO" data-id="${id || ''}" data-issue="1">Terbitkan</button></div>`, '', 'data-check="out"');
+  refreshHints();
+}
+function printDO(id) {
+  const d = S.dos.find(x => x.id === id), c = S.customers.find(x => x.id === d.customerId);
+  $('#print-area').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div><div style="font-size:18px;font-weight:700">[NAMA PERUSAHAAN]</div><div>[Alamat gudang]</div></div>
+      <div style="text-align:right"><div style="font-size:20px;font-weight:700;letter-spacing:1px">SURAT JALAN</div><div>No. ${esc(d.no || 'DRAFT')}</div></div>
+    </div>
+    <table style="margin-bottom:12px"><tbody>
+      <tr><td style="width:18%">Kepada</td><td>${esc(c?.name || '')}<br>${esc(c?.info || '')}</td><td style="width:18%">Tanggal</td><td>${fmtD(d.date)}</td></tr>
+      <tr><td>Kendaraan</td><td>${esc(d.plate)}</td><td>Sopir</td><td>${esc(d.driver)}</td></tr>
+    </tbody></table>
+    <table><thead><tr><th style="width:36px">No</th><th>SKU</th><th>Nama barang</th><th style="text-align:right">Jumlah</th><th>Satuan</th><th style="text-align:right">Setara pcs</th></tr></thead><tbody>
+    ${d.items.map((i, n) => { const p = P(i.productId); return `<tr><td>${n + 1}</td><td>${esc(p.sku)}</td><td>${esc(p.name)}</td><td style="text-align:right">${fmt(i.qty)}</td><td>${i.unit}</td><td style="text-align:right">${fmt(toPcs(p, i.qty, i.unit))}</td></tr>`; }).join('')}
+    <tr><td colspan="5" style="text-align:right"><strong>Total</strong></td><td style="text-align:right"><strong>${fmt(itemsPcs(d.items))}</strong></td></tr></tbody></table>
+    ${d.note ? `<p>Catatan: ${esc(d.note)}</p>` : ''}
+    <div class="sig"><div><div></div>Dibuat (gudang)</div><div><div></div>Sopir</div><div><div></div>Pengecek gerbang</div><div><div></div>Penerima</div></div>`;
+  window.print();
+}
+
+/* ---------- aksi ---------- */
+const actions = {
+  nav: d => { V = d.v; closeModal(); render(); },
+  closeModal,
+  range: d => { F.range = parseInt(d.d, 10); render(); },
+  dtab: d => { F.dtab = d.t; render(); },
+  tab: d => { TAB = d.t; render(); },
+  newDO: () => openDO(),
+  editDO: d => openDO(d.id),
+  addRow: () => { $('#rows').insertAdjacentHTML('beforeend', rowHtml()); refreshHints(); },
+  delRow: (d, el) => { const rows = document.querySelectorAll('#rows .row'); if (rows.length > 1) el.closest('.row').remove(); refreshHints(); },
+  saveDO: d => {
+    const rows = readRows(), err = [], issue = d.issue === '1';
+    const customerId = $('#f-cust').value, date = $('#f-date').value, plate = $('#f-plate').value.trim(), driver = $('#f-driver').value.trim(), note = $('#f-note').value.trim();
+    if (!customerId) err.push('Pilih pelanggan.');
+    if (!date) err.push('Tanggal wajib diisi.');
+    if (!rows.length) err.push('Isi minimal satu barang.');
+    if (rows.some(r => !r.productId || r.qty <= 0)) err.push('Setiap baris harus punya barang dan jumlah lebih dari 0.');
+    if (issue) {
+      if (!plate) err.push('Plat nomor wajib diisi sebelum diterbitkan.');
+      if (!driver) err.push('Nama sopir wajib diisi sebelum diterbitkan.');
+      if (!err.length) {
+        const need = {}, sm = stockMap();
+        rows.forEach(r => { need[r.productId] = (need[r.productId] || 0) + toPcs(P(r.productId), r.qty, r.unit); });
+        Object.entries(need).forEach(([pid, n]) => { if (n > (sm[pid] || 0)) err.push(`Stok ${P(pid).sku} tidak cukup: butuh ${fmt(n)} pcs, tersedia ${fmt(sm[pid] || 0)} pcs.`); });
+      }
+    }
+    if (err.length) return showErr(err);
+    let doc = d.id ? S.dos.find(x => x.id === d.id) : null;
+    if (!doc) { doc = {id: uid(), status: 'draft', createdBy: S.user, createdAt: Date.now()}; S.dos.push(doc); }
+    Object.assign(doc, {customerId, date, plate, driver, note, items: rows});
+    if (issue) {
+      doc.no = nextNo('SJ', date); doc.status = 'terbit'; doc.issuedAt = Date.now(); doc.issuedBy = S.user;
+      rows.forEach(r => { const p = P(r.productId); S.movements.push({id: uid(), ts: Date.now(), productId: p.id, qty: -toPcs(p, r.qty, r.unit), type: 'OUT', ref: doc.no, user: S.user, note: custName(customerId)}); });
+      log('Surat jalan terbit', `${doc.no} · ${custName(customerId)} · ${doc.plate} · ${fmt(itemsPcs(rows))} pcs`);
+    } else log('Draft surat jalan disimpan', `${custName(customerId)} · ${rows.length} jenis barang`);
+    save(); closeModal(); render(); toast(issue ? `Surat jalan ${doc.no} terbit, stok berkurang.` : 'Draft tersimpan.');
+  },
+  chip: d => { F[d.k] = d.v; render(); },
+  preset: d => { const t = today(); R.to = t; R.from = d.p === 'month' ? t.slice(0, 8) + '01' : isoDaysAgo(parseInt(d.p, 10) - 1); render(); },
+  viewDO: d => {
+    const doc = S.dos.find(x => x.id === d.id);
+    const ev = [[doc.createdAt, 'Dibuat sebagai draft', doc.createdBy, '']];
+    if (doc.issuedAt) ev.push([doc.issuedAt, 'Diterbitkan, stok berkurang', doc.issuedBy, '']);
+    if (doc.status === 'batal') ev.push([doc.cancelledAt, 'Dibatalkan: ' + doc.cancelReason, doc.cancelledBy, 'bad']);
+    modal(`<h2>${esc(doc.no || 'Draft surat jalan')} ${badge(doc.status)}</h2>
+    <dl class="kv"><dt>Pelanggan</dt><dd>${esc(custName(doc.customerId))}</dd><dt>Tanggal</dt><dd>${fmtD(doc.date)}</dd><dt>Kendaraan</dt><dd>${esc(doc.plate || '—')} · ${esc(doc.driver || '—')}</dd>
+    ${doc.note ? `<dt>Catatan</dt><dd>${esc(doc.note)}</dd>` : ''}</dl>
+    <div class="scroll"><table><thead><tr><th>SKU</th><th>Barang</th><th class="num">Jumlah</th><th class="num">Setara pcs</th></tr></thead><tbody>
+    ${doc.items.map(i => { const p = P(i.productId); return `<tr><td>${esc(p.sku)}</td><td>${esc(p.name)}</td><td class="num">${fmt(i.qty)} ${i.unit}</td><td class="num">${fmt(toPcs(p, i.qty, i.unit))}</td></tr>`; }).join('')}
+    <tr><td colspan="3" class="num"><strong>Total</strong></td><td class="num"><strong>${fmt(itemsPcs(doc.items))}</strong></td></tr></tbody></table></div>
+    <h3>Riwayat</h3><ul class="tl">${ev.map(([t, txt, who, c]) => `<li class="${c}">${esc(txt)}<small>${fmtDT(t)} · ${esc(who)}</small></li>`).join('')}</ul>
+    <div class="actions"><button class="btn ghost" data-a="closeModal">Tutup</button>
+    ${doc.status !== 'draft' ? `<button class="btn" data-a="printDO" data-id="${doc.id}">Cetak</button>` : ''}
+    ${doc.status === 'draft' && !isOwner() ? `<button class="btn primary" data-a="editDO" data-id="${doc.id}">Ubah / terbitkan</button>` : ''}
+    ${doc.status === 'terbit' && !isOwner() ? `<button class="btn danger" data-a="askCancel" data-id="${doc.id}">Batalkan</button>` : ''}</div>`, 'wide');
+  },
+  viewGR: d => {
+    const r = S.receipts.find(x => x.id === d.id);
+    modal(`<h2>${esc(r.no)}</h2>
+    <dl class="kv"><dt>Pemasok</dt><dd>${esc(suppName(r.supplierId))}</dd><dt>Tanggal terima</dt><dd>${fmtD(r.date)}</dd><dt>Ref. pemasok</dt><dd>${esc(r.ref || '—')}</dd><dt>Dicatat oleh</dt><dd>${esc(r.user)} · ${fmtDT(r.createdAt)}</dd></dl>
+    <div class="scroll"><table><thead><tr><th>SKU</th><th>Barang</th><th class="num">Jumlah</th><th class="num">Setara pcs</th></tr></thead><tbody>
+    ${r.items.map(i => { const p = P(i.productId); return `<tr><td>${esc(p.sku)}</td><td>${esc(p.name)}</td><td class="num">${fmt(i.qty)} ${i.unit}</td><td class="num">${fmt(toPcs(p, i.qty, i.unit))}</td></tr>`; }).join('')}
+    <tr><td colspan="3" class="num"><strong>Total</strong></td><td class="num"><strong>${fmt(itemsPcs(r.items))}</strong></td></tr></tbody></table></div>
+    <div class="actions"><button class="btn" data-a="closeModal">Tutup</button></div>`, 'wide');
+  },
+  printDO: d => printDO(d.id),
+  askCancel: d => {
+    const doc = S.dos.find(x => x.id === d.id);
+    modal(`<h2>Batalkan ${esc(doc.no)}</h2><p>Surat jalan tidak dihapus. Stok dikembalikan lewat pergerakan baru, dan alasan tercatat di audit log.</p>
+    <label>Alasan pembatalan<textarea id="c-reason" rows="3" placeholder="Contoh: pelanggan membatalkan pesanan"></textarea></label>
+    <div id="err" class="err" hidden></div>
+    <div class="actions"><button class="btn ghost" data-a="closeModal">Kembali</button><button class="btn danger" data-a="doCancel" data-id="${doc.id}">Batalkan surat jalan</button></div>`);
+  },
+  doCancel: d => {
+    const reason = $('#c-reason').value.trim(); if (reason.length < 5) return showErr(['Alasan wajib diisi (minimal 5 karakter).']);
+    const doc = S.dos.find(x => x.id === d.id);
+    doc.items.forEach(i => { const p = P(i.productId); S.movements.push({id: uid(), ts: Date.now(), productId: p.id, qty: toPcs(p, i.qty, i.unit), type: 'VOID', ref: doc.no, user: S.user, note: 'Pembatalan: ' + reason}); });
+    Object.assign(doc, {status: 'batal', cancelReason: reason, cancelledBy: S.user, cancelledAt: Date.now()});
+    log('Surat jalan dibatalkan', `${doc.no} · ${reason}`); save(); closeModal(); render(); toast(`${doc.no} dibatalkan, stok dikembalikan.`);
+  },
+  newGR: () => {
+    modal(`<h2>Catat barang masuk</h2><div class="grid2">
+    <label>Pemasok<select id="f-supp">${partyOpts(S.suppliers)}</select></label><label>Tanggal terima<input type="date" id="f-date" value="${today()}"></label>
+    <label>No. dokumen pemasok<input id="f-ref" placeholder="Opsional" autocomplete="off"></label></div>
+    <h3>Barang diterima</h3><div id="rows">${rowHtml({unit: 'karton'})}</div>
+    <button class="btn sm ghost" data-a="addRow" type="button">+ Tambah baris</button><div id="err" class="err" hidden></div>
+    <div class="actions"><button class="btn ghost" data-a="closeModal">Tutup</button><button class="btn primary" data-a="saveGR">Simpan</button></div>`);
+    refreshHints();
+  },
+  saveGR: () => {
+    const rows = readRows(), err = [], supplierId = $('#f-supp').value, date = $('#f-date').value, ref = $('#f-ref').value.trim();
+    if (!supplierId) err.push('Pilih pemasok.'); if (!date) err.push('Tanggal wajib diisi.');
+    if (!rows.length) err.push('Isi minimal satu barang.');
+    if (rows.some(r => !r.productId || r.qty <= 0)) err.push('Setiap baris harus punya barang dan jumlah lebih dari 0.');
+    if (err.length) return showErr(err);
+    const no = nextNo('GR', date);
+    S.receipts.push({id: uid(), no, date, supplierId, ref, items: rows, user: S.user, createdAt: Date.now()});
+    rows.forEach(r => { const p = P(r.productId); S.movements.push({id: uid(), ts: Date.now(), productId: p.id, qty: toPcs(p, r.qty, r.unit), type: 'IN', ref: no, user: S.user, note: suppName(supplierId)}); });
+    log('Barang masuk', `${no} · ${suppName(supplierId)} · ${fmt(itemsPcs(rows))} pcs`); save(); closeModal(); render(); toast(`${no} tersimpan, stok bertambah.`);
+  },
+  kartu: d => {
+    const p = P(d.id); let bal = 0;
+    const list = S.movements.filter(m => m.productId === p.id).sort((a, b) => a.ts - b.ts).map(m => ({...m, bal: bal += m.qty})).reverse();
+    const tn = {IN: 'Masuk', OUT: 'Keluar', VOID: 'Batal SJ', ADJ: 'Koreksi'};
+    modal(`<h2>Kartu stok · ${esc(p.sku)}</h2><p style="color:var(--muted);margin:0 0 10px">${esc(p.name)} · saldo ${fmt(bal)} pcs (${breakdown(bal, p)})</p>
+    <div class="scroll"><table><thead><tr><th>Waktu</th><th>Jenis</th><th>Referensi</th><th class="num">Jumlah</th><th class="num">Saldo</th><th>Petugas</th></tr></thead><tbody>
+    ${list.map(m => `<tr><td>${fmtDT(m.ts)}</td><td>${tn[m.type]}</td><td>${esc(m.ref)}<span class="sub">${esc(m.note || '')}</span></td><td class="num">${m.qty > 0 ? '+' : ''}${fmt(m.qty)}</td><td class="num">${fmt(m.bal)}</td><td>${esc(m.user)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="actions"><button class="btn" data-a="closeModal">Tutup</button></div>`, 'wide');
+  },
+  newAdj: d => {
+    modal(`<h2>Ajukan koreksi stok</h2><p style="margin-top:0;color:var(--muted)">Isi hasil hitung fisik. Stok baru berubah setelah owner menyetujui.</p>
+    <label>Barang<select id="a-prod">${prodOpts(d.id)}</select></label><p id="a-sys" style="color:var(--muted);margin:6px 0 10px"></p>
+    <div class="grid2"><label>Karton<input id="a-k" type="number" min="0" step="1" value="0"></label><label>Box<input id="a-b" type="number" min="0" step="1" value="0"></label><label>Pcs<input id="a-p" type="number" min="0" step="1" value="0"></label></div>
+    <label>Alasan selisih<textarea id="a-reason" rows="3" placeholder="Contoh: salah hitung saat input barang masuk"></textarea></label>
+    <div id="err" class="err" hidden></div>
+    <div class="actions"><button class="btn ghost" data-a="closeModal">Tutup</button><button class="btn primary" data-a="saveAdj">Ajukan</button></div>`, '', 'data-adj="1"');
+    updateAdjHint();
+  },
+  saveAdj: () => {
+    const pid = $('#a-prod').value, err = [], reason = $('#a-reason').value.trim();
+    if (!pid) err.push('Pilih barang.'); if (reason.length < 5) err.push('Alasan wajib diisi (minimal 5 karakter).');
+    if (err.length) return showErr(err);
+    const p = P(pid), k = parseInt($('#a-k').value, 10) || 0, b = parseInt($('#a-b').value, 10) || 0, q = parseInt($('#a-p').value, 10) || 0;
+    const countPcs = k * p.boxPerCarton * p.pcsPerBox + b * p.pcsPerBox + q, systemPcs = stockMap()[pid] || 0;
+    S.adjs.push({id: uid(), ts: Date.now(), productId: pid, systemPcs, countPcs, reason, status: 'pending', user: S.user});
+    log('Koreksi diajukan', `${p.sku} · sistem ${fmt(systemPcs)} → fisik ${fmt(countPcs)} · ${reason}`); save(); closeModal(); V = 'koreksi'; render(); toast('Pengajuan koreksi terkirim ke owner.');
+  },
+  approveAdj: d => {
+    if (!isOwner()) return toast('Hanya owner yang bisa menyetujui.');
+    const a = S.adjs.find(x => x.id === d.id), p = P(a.productId), cur = stockMap()[p.id] || 0, diff = a.countPcs - cur;
+    Object.assign(a, {status: 'approved', decidedBy: S.user, decidedAt: Date.now(), appliedDiff: diff});
+    if (diff) S.movements.push({id: uid(), ts: Date.now(), productId: p.id, qty: diff, type: 'ADJ', ref: 'OPNAME', user: S.user, note: a.reason});
+    log('Koreksi disetujui', `${p.sku} · selisih ${diff > 0 ? '+' : ''}${fmt(diff)} pcs`); save(); render(); toast('Koreksi disetujui, stok diperbarui.');
+  },
+  rejectAdj: d => {
+    if (!isOwner()) return toast('Hanya owner yang bisa menolak.');
+    const a = S.adjs.find(x => x.id === d.id); Object.assign(a, {status: 'rejected', decidedBy: S.user, decidedAt: Date.now()});
+    log('Koreksi ditolak', `${P(a.productId).sku} · ${a.reason}`); save(); render();
+  },
+  newProd: () => openProd(),
+  editProd: d => openProd(d.id),
+  saveProd: d => {
+    const g = id => $('#' + id).value.trim(), n = id => parseInt($('#' + id).value, 10) || 0, err = [];
+    const rec = {sku: g('p-sku').toUpperCase(), name: g('p-name'), brand: g('p-brand'), rak: g('p-rak'), pcsPerBox: n('p-box'), boxPerCarton: n('p-carton'), min: n('p-min')};
+    if (!rec.sku || !rec.name) err.push('SKU dan nama wajib diisi.');
+    if (S.products.some(p => p.sku === rec.sku && p.id !== d.id)) err.push('SKU sudah dipakai.');
+    if (rec.pcsPerBox < 1 || rec.boxPerCarton < 1) err.push('Isi per box dan box per karton minimal 1.');
+    if (err.length) return showErr(err);
+    if (d.id) { Object.assign(P(d.id), rec); log('Produk diubah', rec.sku); } else { S.products.push({id: uid(), type: '', size: '', ...rec}); log('Produk ditambah', rec.sku); }
+    save(); closeModal(); render(); toast('Produk tersimpan.');
+  },
+  newParty: () => {
+    modal(`<h2>${TAB === 'customers' ? 'Pelanggan' : 'Pemasok'} baru</h2><label>Nama<input id="n-name" autocomplete="off"></label><br><label>Alamat / kontak<input id="n-info" autocomplete="off"></label>
+    <div id="err" class="err" hidden></div><div class="actions"><button class="btn ghost" data-a="closeModal">Tutup</button><button class="btn primary" data-a="saveParty">Simpan</button></div>`);
+  },
+  saveParty: () => {
+    const name = $('#n-name').value.trim(); if (!name) return showErr(['Nama wajib diisi.']);
+    S[TAB].push({id: uid(), name, info: $('#n-info').value.trim()}); log(TAB === 'customers' ? 'Pelanggan ditambah' : 'Pemasok ditambah', name); save(); closeModal(); render();
+  },
+  csv: () => {
+    const {rows} = reportData(), q = v => `"${String(v).replace(/"/g, '""')}"`;
+    const lines = [['SKU', 'Nama', 'Awal', 'Masuk', 'Keluar', 'Batal SJ', 'Koreksi', 'Akhir'].map(q).join(',')].concat(rows.map(r => [r.p.sku, r.p.name, r.awal, r.masuk, r.keluar, r.batal, r.koreksi, r.akhir].map(q).join(',')));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], {type: 'text/csv'})); a.download = `mutasi-stok_${R.from}_${R.to}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  },
+  reset: () => { if (confirm('Hapus semua data demo dan mulai dari awal?')) { S = seed(); save(); V = 'dashboard'; render(); toast('Data demo direset.'); } }
+};
+function openProd(id) {
+  const p = id ? P(id) : {pcsPerBox: 100, boxPerCarton: 10, min: 5000, brand: ''};
+  modal(`<h2>${id ? 'Ubah produk' : 'Produk baru'}</h2><div class="grid2">
+  <label>SKU<input id="p-sku" value="${esc(p.sku || '')}" autocomplete="off"></label><label>Nama<input id="p-name" value="${esc(p.name || '')}" autocomplete="off"></label>
+  <label>Merek<input id="p-brand" value="${esc(p.brand)}"></label><label>Rak<input id="p-rak" value="${esc(p.rak || '')}"></label>
+  <label>Isi per box (pcs)<input id="p-box" type="number" min="1" value="${p.pcsPerBox}"></label><label>Box per karton<input id="p-carton" type="number" min="1" value="${p.boxPerCarton}"></label>
+  <label>Batas minimum stok (pcs)<input id="p-min" type="number" min="0" value="${p.min}"></label></div>
+  <div id="err" class="err" hidden></div><div class="actions"><button class="btn ghost" data-a="closeModal">Tutup</button><button class="btn primary" data-a="saveProd" data-id="${id || ''}">Simpan</button></div>`);
+}
+function updateAdjHint() { const pid = $('#a-prod')?.value, el = $('#a-sys'); if (!el) return; el.textContent = pid ? `Stok di sistem: ${fmt(stockMap()[pid] || 0)} pcs (${breakdown(stockMap()[pid] || 0, P(pid))})` : ''; }
+
+/* ---------- event ---------- */
+document.addEventListener('click', e => {
+  if (e.target.id === 'ov') return closeModal();
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const fn = actions[el.dataset.a]; if (fn) fn(el.dataset, el);
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'sjq') { F.sjQ = t.value; $('#sj-body').innerHTML = sjTable(); }
+  else if (t.id === 'stokq') { F.stokQ = t.value; $('#stok-body').innerHTML = stokTable(); }
+  else if (t.closest('#rows')) refreshHints();
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'who') { S.user = t.value; save(); render(); }
+  else if (t.id === 'sjs') { F.sjStatus = t.value; $('#sj-body').innerHTML = sjTable(); }
+  else if (t.id === 'rfrom' || t.id === 'rto') { R.from = $('#rfrom').value || R.from; R.to = $('#rto').value || R.to; render(); }
+  else if (t.id === 'a-prod') updateAdjHint();
+  else if (t.closest('#rows')) refreshHints();
+});
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#gsearch')?.focus(); }
+  else if (e.key === 'Enter' && e.target.id === 'gsearch') { F.stokQ = e.target.value.trim(); V = 'stok'; closeModal(); render(); }
+  else if (e.key === 'Escape') closeModal();
+});
+window.addEventListener('afterprint', () => { $('#print-area').innerHTML = ''; });
+render();
+</script>
+</body>
+</html>
